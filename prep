@@ -1,0 +1,40 @@
+#!/bin/bash
+
+if [ ! -e "$1" ] ; then
+	exit
+fi
+
+# at least TinkerOS image is smaller than parition end (but not fs end), so make partprobe happy
+while ! partprobe $1 ; do
+	dd if=/dev/zero bs=1M count=100 >> $1
+done
+
+# should call "losetup -f" to get a free device name but then it'd have to be passed to "post" script too
+losetup /dev/loop7 $1
+partprobe /dev/loop7
+
+rm -rf m
+mkdir m
+
+# mount partitions
+mount /dev/loop7p2 m
+mount /dev/loop7p1 m/boot
+
+# /proc is needed for systemctl (which will then understand it's inside chroot and do nothing)
+mount null -t proc m/proc
+
+# qemu
+cp $(which qemu-arm-static) m/bin/
+
+# main script
+cp PREP_SYSTEM_FOR_DIETPI.sh m/root/
+chmod 755 m/root/PREP_SYSTEM_FOR_DIETPI.sh
+
+# TinkerOS-specific
+rm m/md5sum.txt
+
+#rm m/var/lib/dpkg/info/bluez.prerm
+#rm m/var/lib/dpkg/info/acpid.prerm
+
+# ready to roll
+chroot m qemu-arm-static /bin/bash

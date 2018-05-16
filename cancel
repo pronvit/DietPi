@@ -1,0 +1,10 @@
+#!/bin/bash
+
+umount m/boot
+umount m/DietPi
+umount m/proc
+umount m/tmp
+umount m/var/log
+umount m
+
+losetup -d /dev/loop7

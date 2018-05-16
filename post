@@ -1,0 +1,28 @@
+#!/bin/bash
+
+if [ ! -e "$1" ] ; then
+	exit
+fi
+
+# unmount everything
+sync
+umount m/boot
+umount m/DietPi
+umount m/proc
+umount m/tmp
+umount m/var/log
+umount m
+
+# check, resize and store the resulting size
+e2fsck -f /dev/loop7p2
+SIZE=$([[ $(resize2fs -M /dev/loop7p2) =~ (is now ([0-9]+)) ]] && echo ${BASH_REMATCH[2]})
+
+# detach
+losetup -d /dev/loop7
+
+# find partiton start
+START=$([[ $(file $1) =~ (partition 2.*startsector ([0-9]+)) ]] && echo ${BASH_REMATCH[2]})
+
+# copy just the length we need
+# don't bother updating partition table, it will be adjusted on first boot anyway
+dd if=$1 of=DietPi.img bs=512 count=$[$START+$SIZE*8]

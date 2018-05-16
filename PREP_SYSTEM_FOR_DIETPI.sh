@@ -583,7 +583,8 @@ _EOF_
 	# - Mount tmpfs
 	mkdir -p /DietPi
 	mount -t tmpfs -o size=20m tmpfs /DietPi
-	G_RUN_CMD systemctl start dietpi-ramdisk.service
+	#G_RUN_CMD systemctl start dietpi-ramdisk.service
+	/boot/dietpi/dietpi-ramdisk 0
 
 	#------------------------------------------------------------------------------------------------
 	echo ''
@@ -1033,9 +1034,27 @@ _EOF_
 
 	G_DIETPI-NOTIFY 2 'Generating DietPi /etc/fstab'
 
-	G_RUN_CMD /DietPi/dietpi/dietpi-drive_manager 4
+	cat << _EOF_ >> /etc/fstab
+#Samba Client------------------------------------------------------
+#/mnt/samba . Please use dietpi-config and the Networking Options: NAS menu to setup this mount
+
+#FTP Client Mount--------------------------------------------------
+#/mnt/ftp_client . Please use dietpi-config and the Networking Options: NAS menu to setup this mount
+
+#NFS Client Mount--------------------------------------------------
+#/mnt/nfs_client . Please use dietpi-config and the Networking Options: NAS menu to setup this mount
+
+#TMPFS / MISC ------------------------------------------------------
+tmpfs 			/tmp  			tmpfs 	defaults,noatime,nodev,nosuid,mode=1777				0 0
+tmpfs 			/var/log 		tmpfs 	defaults,size=${VAR_LOG_SIZE}m,noatime,nodev,nosuid,mode=1777	0 0
+tmpfs 			/DietPi 		tmpfs 	defaults,size=10m,noatime,nodev,nosuid,mode=1777	0 0
+
+#Internal Drives---------------------------------------------------
+_EOF_
+
+	#G_RUN_CMD /DietPi/dietpi/dietpi-drive_manager 4
 	# Restart DietPi-RAMdisk, as 'dietpi-drive_manager 4' remounts /DietPi.
-	G_RUN_CMD systemctl restart dietpi-ramdisk
+	#G_RUN_CMD systemctl restart dietpi-ramdisk
 
 	G_DIETPI-NOTIFY 2 'Deleting all log files /var/log'
 
@@ -1299,7 +1318,7 @@ _EOF_
 
 	G_DIETPI-NOTIFY 2 'Removing swapfile from image'
 
-	/DietPi/dietpi/func/dietpi-set_dphys-swapfile 0 /var/swap
+	#/DietPi/dietpi/func/dietpi-set_dphys-swapfile 0 /var/swap
 	rm /var/swap &> /dev/null # still exists on some images...
 
 	# - re-enable for next run
@@ -1530,7 +1549,8 @@ _EOF_
 	G_DIETPI-NOTIFY 2 'Sync changes to disk. Please wait, this may take some time...'
 
 	G_RUN_CMD systemctl stop dietpi-ramlog
-	G_RUN_CMD systemctl stop dietpi-ramdisk
+	#G_RUN_CMD systemctl stop dietpi-ramdisk
+	/boot/dietpi/dietpi-ramdisk 1
 
 	# - Clear tmp files
 	rm -R /tmp/* &> /dev/null
