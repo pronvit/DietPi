@@ -24,7 +24,7 @@ mount /dev/loop7p1 m/boot
 mount null -t proc m/proc
 
 # qemu
-cp $(which qemu-arm-static) m/bin/
+cp $(which qemu-arm-static) m/usr/bin/
 
 # main script
 cp PREP_SYSTEM_FOR_DIETPI.sh m/root/
